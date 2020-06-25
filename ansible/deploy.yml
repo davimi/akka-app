@@ -1,0 +1,23 @@
+---
+- hosts: raspberries
+  gather_facts: no
+
+  tasks:
+    - name: Ensure that git is installed
+      become: root
+      apt: name=git state=present
+
+    - name: Ensure that java is installed
+      shell: java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
+      register: java_version
+      ignore_errors: True
+
+    - fail:
+        name: Checking java version
+      when: java_version.stdout != "1.8.0_65"
+
+    - name: Ensure that sbt is installed
+      apt: name=sbt state=present
+
+    - name: Compile project
+      command: sbt; assembly
